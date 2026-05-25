@@ -1,6 +1,6 @@
 import os
 import pandas as pd
-import numpy as np
+from datetime import datetime
 import shap
 import matplotlib.pyplot as plt
 from sklearn.model_selection import StratifiedKFold, GridSearchCV
@@ -118,6 +118,6 @@ def generate_shap_summary(model, X_train, X_test, model_name, lag, output_dir):
     shap.summary_plot(shap_values, X_test_sample, show=False)
     plt.tight_layout()
     
-    plot_path = os.path.join(output_dir, f"shap_{model_name}_lag{lag}.png")
+    plot_path = os.path.join(output_dir, f"shap_{model_name}_lag{lag}_{datetime.now()}.png")
     plt.savefig(plot_path, dpi=300, bbox_inches='tight')
     plt.close()
