@@ -21,3 +21,8 @@ __pycache__/
 # Models
 *.pkl
 *.pt
+
+# Files
+parse_to_md.py
+output_parse.txt
+*.csv
