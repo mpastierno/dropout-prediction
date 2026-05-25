@@ -1,0 +1,73 @@
+feature_1,feature_2,correlation
+stop tracking,start tracking,1.0
+ltol_ws_ltol_get_courses,core_course_get_contents,1.0
+automatically create user token,sending requested user token,1.0
+comment,map,1.0
+ltol_get_categories,ltol_ws_ltol_get_courses,1.0
+close attempt,review,1.0
+ltol_get_categories,core_course_get_contents,1.0
+ltol_ws_get_asset,ltol_ws_put_track,0.9963
+ltol_ws_get_asset,ltol_get_users_courses,0.9962
+graded,submitted,0.9924
+attempt,continue attempt,0.9922
+ltol_ws_put_track,ltol_get_users_courses,0.9915
+ltol_ws_ltol_get_courses,ltol_ws_put_track,0.989
+ltol_get_categories,ltol_ws_put_track,0.989
+core_course_get_contents,ltol_ws_put_track,0.9881
+ltol_get_categories,ltol_ws_get_asset,0.987
+ltol_ws_ltol_get_courses,ltol_ws_get_asset,0.987
+core_course_get_contents,ltol_ws_get_asset,0.9858
+view forum,view discussion,0.983
+started,reviewed,0.9733
+ltol_get_categories,ltol_get_users_courses,0.9726
+ltol_ws_ltol_get_courses,ltol_get_users_courses,0.9726
+core_course_get_contents,ltol_get_users_courses,0.9709
+update post,upload,0.9688
+update post,add post,0.9676
+add post,upload,0.9663
+attempt,close attempt,0.9622
+attempt,review,0.9622
+continue attempt,review,0.9539
+continue attempt,close attempt,0.9539
+sending requested user token,core_course_get_contents,0.94
+sending requested user token,ltol_get_categories,0.94
+automatically create user token,core_course_get_contents,0.94
+sending requested user token,ltol_ws_ltol_get_courses,0.94
+automatically create user token,ltol_ws_ltol_get_courses,0.94
+automatically create user token,ltol_get_categories,0.94
+automatically create user token,ltol_ws_get_asset,0.9394
+sending requested user token,ltol_ws_get_asset,0.9394
+automatically create user token,ltol_ws_put_track,0.9373
+sending requested user token,ltol_ws_put_track,0.9373
+sending requested user token,ltol_get_users_courses,0.9269
+automatically create user token,ltol_get_users_courses,0.9269
+blocked,unblocked,0.8943
+created,uploaded,0.8888
+launched,graded,0.8879
+launched,submitted,0.887
+update,upload,0.8471
+update,add post,0.8306
+sent,uploaded,0.8291
+view forums,view all,0.8105
+core_webservice_get_site_info,core_course_get_contents,0.7965
+update,update post,0.7961
+add discussion,add post,0.7956
+core_webservice_get_site_info,ltol_get_categories,0.7921
+core_webservice_get_site_info,ltol_ws_ltol_get_courses,0.7921
+view forum,view forums,0.7837
+view forums,view discussion,0.7786
+add discussion,upload,0.768
+core_webservice_get_site_info,core_enrol_get_users_courses,0.7674
+created,sent,0.7639
+add discussion,update post,0.7603
+automatically create user token,core_webservice_get_site_info,0.7587
+sending requested user token,core_webservice_get_site_info,0.7587
+user report,view all,0.7543
+pre-view,launch,0.7504
+view discussion,add discussion,0.742
+view forum,add discussion,0.7266
+view forums,add discussion,0.7229
+user report,view forums,0.713
+update,add discussion,0.7124
+core_webservice_get_site_info,ltol_ws_put_track,0.7084
+add,delete,0.707
