@@ -16,3 +16,8 @@ __pycache__/
 .env
 .DS_Store
 .data/
+.test/
+
+# Models
+*.pkl
+*.pt
