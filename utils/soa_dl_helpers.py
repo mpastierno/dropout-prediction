@@ -65,9 +65,10 @@ def prepare_3d_global_data(file_path, lag, use_macro=True):
 
 
 class LSTMClassifier(nn.Module):
-    def __init__(self, input_dim, hidden_dim=100):
+    def __init__(self, input_dim, hidden_dim=100, dropout_rate=0.2):
         super(LSTMClassifier, self).__init__()
         self.hidden_dim = hidden_dim
+        self.dropout = nn.Dropout(p=dropout_rate)
         self.lstm = nn.LSTM(input_size=input_dim, hidden_size=hidden_dim, batch_first=True)
         self.fc = nn.Linear(hidden_dim, 1)
 
@@ -75,21 +76,28 @@ class LSTMClassifier(nn.Module):
         out, (h_n, c_n) = self.lstm(x)
         
         last_hidden = h_n[-1] 
+        dropped_hidden = self.dropout(last_hidden)
+        logits = self.fc(dropped_hidden).squeeze(-1)
         
-        logits = self.fc(last_hidden)
-        probs = torch.sigmoid(logits).squeeze(-1)
-        return probs
+        return logits
     
 def evaluate_dl_models(X_train, y_train, X_test, y_test, input_dim, hidden_dim=64, lr=0.001, batch_size=64, epochs=30):
     device = check_for_mps()
     print(f"[INFO] Device in use: {device}")
 
+    num_persist = (y_train == 0).sum().item()
+    num_dropout = (y_train == 1).sum().item()
+
+    # NOTE to penalize errors on class 0 more than 1 (1/4 on dropout), passed in criterion
+    pos_weight_val = num_persist / num_dropout
+    pos_weight_tensor = torch.tensor([pos_weight_val], dtype=torch.float32).to(device)
+
     train_dataset = TensorDataset(X_train, y_train)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
     model = LSTMClassifier(input_dim=input_dim, hidden_dim=hidden_dim).to(device)
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
+    criterion = nn.BCEWithLogitsLoss(pos_weight=pos_weight_tensor)
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4) # TODO test 1e-3
 
     for epoch in range(epochs):
         model.train()
@@ -98,8 +106,8 @@ def evaluate_dl_models(X_train, y_train, X_test, y_test, input_dim, hidden_dim=6
             batch_X, batch_y = batch_X.to(device), batch_y.to(device)
             
             optimizer.zero_grad()
-            probs = model(batch_X)
-            loss = criterion(probs, batch_y)
+            logits = model(batch_X) # now LOGITS
+            loss = criterion(logits, batch_y)
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item() * batch_X.size(0)
@@ -107,7 +115,9 @@ def evaluate_dl_models(X_train, y_train, X_test, y_test, input_dim, hidden_dim=6
     model.eval()
     with torch.no_grad():
         X_test_dev = X_test.to(device)
-        y_prob_tensor = model(X_test_dev)
+        logits = model(X_test_dev)
+        y_prob_tensor = torch.sigmoid(logits)
+        
         y_prob = y_prob_tensor.cpu().numpy()
         y_pred = (y_prob >= 0.5).astype(int)
         y_true = y_test.numpy()
@@ -131,7 +141,7 @@ def generate_shap_summary(model, X_train_tensor, X_test_tensor, feature_names, l
         x_3d = x_2d_numpy.reshape(-1, lag, len(feature_names))
         x_tensor = torch.tensor(x_3d, dtype=torch.float32).to(device)
         with torch.no_grad():
-            preds = model(x_tensor).cpu().numpy().flatten()
+            preds = torch.sigmoid(model(x_tensor)).cpu().numpy().flatten()
         return preds
     
     X_train_2d = X_train_tensor.numpy().reshape(X_train_tensor.shape[0], -1)
