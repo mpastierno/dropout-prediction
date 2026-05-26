@@ -89,14 +89,24 @@ def evaluate_model_global(model_config, X_train, y_train, y_strat_train, X_test,
     y_pred = best_model.predict(X_test)
     y_prob = best_model.predict_proba(X_test)[:, 1]
     
+    # NOTE addition of weighted pr-auc to allign on paper's metrics
+    pr_auc_1 = average_precision_score(y_test, y_prob)
+    pr_auc_0 = average_precision_score(1 - y_test, 1 - y_prob)
+    
+    support_1 = (y_test == 1).sum()
+    support_0 = (y_test == 0).sum()
+    total_samples = len(y_test)
+    
+    weighted_pr_auc = (pr_auc_1 * support_1 + pr_auc_0 * support_0) / total_samples
+
     metrics = {
         'best_params': grid.best_params_,
         'accuracy': round(accuracy_score(y_test, y_pred), 4),
-        'precision': round(precision_score(y_test, y_pred, zero_division=0), 4),
-        'recall': round(recall_score(y_test, y_pred, zero_division=0), 4),
-        'f1': round(f1_score(y_test, y_pred, zero_division=0), 4),
+        'precision': round(precision_score(y_test, y_pred, average='weighted', zero_division=0), 4),
+        'recall': round(recall_score(y_test, y_pred, average='weighted', zero_division=0), 4),
+        'f1': round(f1_score(y_test, y_pred, average='weighted', zero_division=0), 4),
         'roc_auc': round(roc_auc_score(y_test, y_prob), 4),
-        'pr_auc': round(average_precision_score(y_test, y_prob), 4)
+        'pr_auc': round(weighted_pr_auc, 4)
     }
     
     return metrics, best_model

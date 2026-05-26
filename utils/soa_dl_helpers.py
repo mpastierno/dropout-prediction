@@ -122,13 +122,23 @@ def evaluate_dl_models(X_train, y_train, X_test, y_test, input_dim, hidden_dim=6
         y_pred = (y_prob >= 0.5).astype(int)
         y_true = y_test.numpy()
 
+    # NOTE addition of weighted pr-auc to allign on paper's metrics
+    pr_auc_1 = average_precision_score(y_true, y_prob)
+    pr_auc_0 = average_precision_score(1 - y_true, 1 - y_prob)
+    
+    support_1 = (y_true == 1).sum()
+    support_0 = (y_true == 0).sum()
+    total_samples = len(y_true)
+    
+    weighted_pr_auc = (pr_auc_1 * support_1 + pr_auc_0 * support_0) / total_samples
+
     metrics = {
         'accuracy': round(accuracy_score(y_true, y_pred), 4),
-        'precision': round(precision_score(y_true, y_pred, zero_division=0), 4),
-        'recall': round(recall_score(y_true, y_pred, zero_division=0), 4),
-        'f1': round(f1_score(y_true, y_pred, zero_division=0), 4),
+        'precision': round(precision_score(y_true, y_pred, average='weighted', zero_division=0), 4),
+        'recall': round(recall_score(y_true, y_pred, average='weighted', zero_division=0), 4),
+        'f1': round(f1_score(y_true, y_pred, average='weighted', zero_division=0), 4),
         'roc_auc': round(roc_auc_score(y_true, y_prob), 4),
-        'pr_auc': round(average_precision_score(y_true, y_prob), 4)
+        'pr_auc': round(weighted_pr_auc, 4)
     }
     
     return metrics, model
