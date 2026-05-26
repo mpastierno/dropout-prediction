@@ -1,3 +1,0 @@
-lag,algorithm,use_macro,time_agg,accuracy,precision,recall,f1,roc_auc,pr_auc
-7,LogisticRegression,True,flatten,0.751,0.8119,0.894,0.851,0.5239,0.8093
-7,RandomForest,True,flatten,0.6919,0.8771,0.7125,0.7863,0.7253,0.9095
