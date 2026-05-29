@@ -1,5 +1,8 @@
 import os
 import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.feature_selection import RFECV
 from datetime import datetime
 import shap
 import matplotlib.pyplot as plt
@@ -110,6 +113,47 @@ def evaluate_model_global(model_config, X_train, y_train, y_strat_train, X_test,
     }
     
     return metrics, best_model
+
+
+def feature_selection(X_train, y_train, X_test, corr_threshold=0.75):
+    print("[INFO] Starting Feature Selection...")
+    
+    # Removing 0 variance cols on X_train
+    zero_cols = [col for col in X_train.columns if X_train[col].sum() == 0]
+    X_train_fs = X_train.drop(columns=zero_cols)
+    X_test_fs = X_test.drop(columns=zero_cols)
+    print(f"[INFO] Removed {len(zero_cols)}/25 features")
+
+    # Removing twins features with high collinearity
+    corr_matrix = X_train_fs.corr().abs()
+    # Upper triangle
+    upper = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k=1).astype(bool))
+    to_drop = [column for column in upper.columns if any(upper[column] > corr_threshold)]
+    X_train_fs = X_train_fs.drop(columns=to_drop)
+    X_test_fs = X_test_fs.drop(columns=to_drop)
+    print(f"[INFO] Removed {len(to_drop)} correlated features")
+
+    # computing RFECV
+    rf_estimator = RandomForestClassifier(n_estimators=50, class_weight='balanced', random_state=42, n_jobs=-1)
+    cv_strategy = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+
+    rfecv = RFECV(
+        estimator=rf_estimator, 
+        step=0.1, 
+        cv=cv_strategy, 
+        scoring='average_precision', 
+        min_features_to_select=5,
+        n_jobs=-1
+    )
+    
+    rfecv.fit(X_train_fs, y_train)
+    selected_features = X_train_fs.columns[rfecv.support_]
+    X_train_fs = X_train_fs[selected_features]
+    X_test_fs = X_test_fs[selected_features]
+
+    print(f"[SUCCESS] Features to keep {X_train_fs.shape[1]}")
+
+    return X_train_fs, X_test_fs, selected_features
 
 def generate_shap_summary(model, X_train, X_test, model_name, lag, output_dir):
     def predict_fn(x):
