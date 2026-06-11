@@ -1,6 +1,7 @@
 import torch
 import pandas as pd
 import os
+from datetime import datetime
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score, average_precision_score
 
 from src.config_unitelma import MACRO_MAPPING
@@ -9,7 +10,12 @@ class BasePipeline:
     def __init__(self, train_path, test_path, output_path, use_macro: bool):
         self.train_df = pd.read_csv(train_path)
         self.test_df = pd.read_csv(test_path)
-        self.output_path = output_path
+
+        experiment_folder = f"Run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        self.output_path = os.path.join(output_path, experiment_folder)
+
+        os.makedirs(self.output_path, exist_ok=True)
+
         self.macro_mapping = MACRO_MAPPING
         self.use_macro = use_macro
 

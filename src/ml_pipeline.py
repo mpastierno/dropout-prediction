@@ -92,12 +92,15 @@ class MLPipeline(BasePipeline):
         plt.figure(figsize=(10, 6))
         shap.summary_plot(shap_values, X_test_sample, show=False)
         plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, f"shap_ml_{model_name}_lag{lag}.png"), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(output_dir, f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_shap_ml_{model_name}_lag{lag}.png"), dpi=300, bbox_inches='tight')
         plt.close()
 
     def run(self, lags: list, classifiers: dict, apply_clipping: bool, use_fs: bool, time_aggregation: str, corr_threshold: float = 0.75):
         results_list = []
-        plots_dir = os.path.join(self.output_path, "plots")
+
+        run_name = f"ML_macro{self.use_macro}_fs{use_fs}_clip{apply_clipping}_{time_aggregation}"
+        run_dir = os.path.join(self.output_path, run_name)
+        plots_dir = os.path.join(run_dir, "plots")
         os.makedirs(plots_dir, exist_ok=True)
 
         for current_lag in lags:
@@ -121,6 +124,7 @@ class MLPipeline(BasePipeline):
                 metrics.update({
                     'lag': current_lag,
                     'algorithm': algo_name,
+                    'apply_clipping': apply_clipping,
                     'time_agg': time_aggregation,
                     'use_macro': self.use_macro,
                     'use_fs': use_fs
@@ -129,8 +133,7 @@ class MLPipeline(BasePipeline):
 
         if results_list:
             df_results = pd.DataFrame(results_list)
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            csv_path = os.path.join(self.output_path, f"metrics_ml_{timestamp}.csv")
+            csv_path = os.path.join(run_dir, f"metrics.csv")
             df_results.to_csv(csv_path, index=False)
             print(f"\n[SUCCESS] CSV saved in: {csv_path}")
         return pd.DataFrame(results_list)

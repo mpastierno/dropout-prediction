@@ -99,12 +99,15 @@ class DLPipeline(BasePipeline):
         plt.figure(figsize=(12, 8))
         shap.summary_plot(shap_values, X_test_sample, feature_names=[f"{feat}_d{d+1}" for d in range(lag) for feat in feature_names], show=False)
         plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, f"shap_dl_lstm_lag{lag}.png"), dpi=300, bbox_inches='tight')
+        plt.savefig(os.path.join(output_dir, f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_shap_dl_lstm_lag{lag}.png"), dpi=300, bbox_inches='tight')
         plt.close()
 
     def run(self, lags: list, epochs: int = 30, batch_size: int = 64, hidden_dim: int = 64, lr: float = 0.001, apply_clipping: bool = False):
         results_list = []
-        plots_dir = os.path.join(self.output_path, "plots")
+
+        run_name = f"DL_LSTM_macro{self.use_macro}_clip{apply_clipping}_ep{epochs}_hd{hidden_dim}"
+        run_dir = os.path.join(self.output_path, run_name)
+        plots_dir = os.path.join(run_dir, "plots")
         os.makedirs(plots_dir, exist_ok=True)
 
         for current_lag in lags:
@@ -124,6 +127,7 @@ class DLPipeline(BasePipeline):
             metrics.update({
                 'lag': current_lag,
                 'algorithm': 'LSTM',
+                'apply_clipping': apply_clipping,
                 'use_macro': self.use_macro,
                 'epochs': epochs,
                 'batch_size': batch_size,
@@ -134,7 +138,7 @@ class DLPipeline(BasePipeline):
 
         if results_list:
             df_results = pd.DataFrame(results_list)
-            csv_path = os.path.join(self.output_path, f"metrics_dl_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
+            csv_path = os.path.join(run_dir, f"metrics.csv")
             df_results.to_csv(csv_path, index=False)
             print(f"\n[SUCCESS] CSV saved in: {csv_path}")
         return pd.DataFrame(results_list)
